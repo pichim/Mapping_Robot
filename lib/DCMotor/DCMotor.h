@@ -23,10 +23,10 @@
  *
  * Example:
  * ```
- * DCMotor motor(PWM_PIN, ENC_A_PIN, ENC_B_PIN, COUNTS_PER_TURN, KN, VOLTAGE_MAX);
- * motor.setVelocity(1.5f); // command velocity to 1.5 rotations per second
+ * DCMotor motor(PWM_PIN, ENC_A_PIN, ENC_B_PIN, GEAR_RATIO, KN, VOLTAGE_MAX, COUNTS_PER_TURN);
+ * motor.setVelocity(1.5f); // command output-shaft velocity to 1.5 turns per second
  * float currentVelocity = motor.getVelocity(); // read current velocity
- * motor.setRotation(5.0f); // command rotation to 5
+ * motor.setRotation(5.0f); // command 5 output-shaft turns from the initial rotation
  * motor.getRotation(); // read current rotation
  * ```
  *
@@ -73,7 +73,7 @@ public:
      * @param enc_a_pin The first pin name for the encoder.
      * @param enc_b_pin The second pin name for the encoder.
      * @param gear_ratio The gear ratio of the gear box.
-     * @param kn The motor constant [rpm/V].
+    * @param kn The output-shaft speed constant [rpm/V].
      * @param voltage_max The maximum voltage for the motor (default: 12.0f).
      * @param counts_per_turn The number of encoder counts per turn of the motor (default: 20.0f).
      */
@@ -93,63 +93,63 @@ public:
     /**
      * @brief Set the target velocity of the motor.
      *
-     * @param velocity The target velocity in units per second.
+    * @param velocity The target output-shaft velocity in turns per second.
      */
     void setVelocity(float velocity);
 
     /**
      * @brief Set the target rotation of the motor.
      *
-     * @param rotation The target rotation in degrees.
+    * @param rotation The target output-shaft rotation in turns relative to the initial rotation.
      */
     void setRotation(float rotation);
 
     /**
      * @brief Set the relative target rotation of the motor. Keep in mind that you do this only once.
      *
-     * @param rotation_relative The relative target rotation in degrees.
+    * @param rotation_relative The relative output-shaft rotation increment in turns.
      */
     void setRotationRelative(float rotation_relative);
 
     /**
      * @brief Get the current rotation target of the motor.
      *
-     * @return float The current rotation target in degrees.
+    * @return float The output-shaft rotation target in turns, including the initial encoder offset.
      */
     float getRotationTarget() const;
 
     /**
      * @brief Get the current rotation setpoint of the motor.
      *
-     * @return float The current rotation setpoint in degrees.
+    * @return float The output-shaft rotation setpoint in turns, including the initial encoder offset.
      */
     float getRotationSetpoint() const;
 
     /**
      * @brief Get the current rotation of the motor.
      *
-     * @return float The current rotation in degrees.
+    * @return float The output-shaft rotation in turns relative to the initial rotation.
      */
     float getRotation() const;
 
     /**
      * @brief Get the current velocity target of the motor.
      *
-     * @return float The current velocity target in units per second.
+    * @return float The output-shaft velocity target in turns per second.
      */
     float getVelocityTarget() const;
 
     /**
      * @brief Get the current velocity setpoint of the motor.
      *
-     * @return float The current velocity setpoint in units per second.
+    * @return float The output-shaft velocity setpoint in turns per second.
      */
     float getVelocitySetpoint() const;
 
     /**
      * @brief Get the current velocity of the motor.
      *
-     * @return float The current velocity in units per second.
+    * @return float The output-shaft velocity in turns per second.
      */
     float getVelocity() const;
 

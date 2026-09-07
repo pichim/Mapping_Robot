@@ -3,18 +3,18 @@
 IMU::IMU(PinName pin_sda,
          PinName pin_scl) : m_i2c(pin_sda, pin_scl),
                             m_ImuMPU6500(m_i2c),
-                            m_Mahony(AMR_IMU_KP, AMR_IMU_KI, static_cast<float>(AMR_SPI_COM_CNTRL_THREAD_PERIOD_US) * 1.0e-6f)
+                            m_Mahony(MR_IMU_KP, MR_IMU_KI, static_cast<float>(MR_SPI_COM_CNTRL_THREAD_PERIOD_US) * 1.0e-6f)
 
 {
-    const float Ts = static_cast<float>(AMR_SPI_COM_CNTRL_THREAD_PERIOD_US) * 1.0e-6f;
+    const float Ts = static_cast<float>(MR_SPI_COM_CNTRL_THREAD_PERIOD_US) * 1.0e-6f;
 
-    m_gyro_filter[0].lowPass1Init(AMR_IMU_GYRO_FILTER_FREQUENCY_HZ, Ts);
-    m_gyro_filter[1].lowPass1Init(AMR_IMU_GYRO_FILTER_FREQUENCY_HZ, Ts);
-    m_gyro_filter[2].lowPass1Init(AMR_IMU_GYRO_FILTER_FREQUENCY_HZ, Ts);
+    m_gyro_filter[0].lowPass1Init(MR_IMU_GYRO_FILTER_FREQUENCY_HZ, Ts);
+    m_gyro_filter[1].lowPass1Init(MR_IMU_GYRO_FILTER_FREQUENCY_HZ, Ts);
+    m_gyro_filter[2].lowPass1Init(MR_IMU_GYRO_FILTER_FREQUENCY_HZ, Ts);
 
-    m_acc_filter[0].lowPass1Init(AMR_IMU_ACC_FILTER_FREQUENCY_HZ, Ts);
-    m_acc_filter[1].lowPass1Init(AMR_IMU_ACC_FILTER_FREQUENCY_HZ, Ts);
-    m_acc_filter[2].lowPass1Init(AMR_IMU_ACC_FILTER_FREQUENCY_HZ, Ts);
+    m_acc_filter[0].lowPass1Init(MR_IMU_ACC_FILTER_FREQUENCY_HZ, Ts);
+    m_acc_filter[1].lowPass1Init(MR_IMU_ACC_FILTER_FREQUENCY_HZ, Ts);
+    m_acc_filter[2].lowPass1Init(MR_IMU_ACC_FILTER_FREQUENCY_HZ, Ts);
 
     // Acc calibration is fixed, but gyro bias is calibrated at startup
     m_is_calibrated = false;
@@ -46,9 +46,11 @@ IMU::ImuData IMU::getImuData()
     m_ImuMPU6500.readGyroAll();
     m_ImuMPU6500.readAccAll();
 
-    // Skip first samples, because the sensor values can be unstable directly after startup
-    if (m_skip_cntr++ < AMR_IMU_NUM_RUNS_SKIP)
+    // Skip unstable startup samples once, then leave the counter at the threshold.
+    if (m_skip_cntr < MR_IMU_NUM_RUNS_SKIP) {
+        ++m_skip_cntr;
         return m_ImuData;
+    }
 
     Eigen::Vector3f gyro(m_ImuMPU6500.getGyroX(), m_ImuMPU6500.getGyroY(), m_ImuMPU6500.getGyroZ());
     Eigen::Vector3f acc(m_ImuMPU6500.getAccX(), m_ImuMPU6500.getAccY(), m_ImuMPU6500.getAccZ());
@@ -61,7 +63,7 @@ IMU::ImuData IMU::getImuData()
         m_avg_cntr++;
 
         // calculate average
-        if (m_avg_cntr == AMR_IMU_NUM_RUNS_FOR_AVERAGE) {
+        if (m_avg_cntr == MR_IMU_NUM_RUNS_FOR_AVERAGE) {
 
             m_gyro_offset /= m_avg_cntr;
             m_is_calibrated = true;
@@ -82,7 +84,7 @@ IMU::ImuData IMU::getImuData()
     gyro -= m_gyro_offset;
     acc   = m_acc_A * (acc - m_acc_offset);
 
-#if AMR_IMU_USE_ADDITIONAL_FILTERS
+#if MR_IMU_USE_ADDITIONAL_FILTERS
     
     // Reset filters with first valid calibrated values
     if (m_is_first_run) {
@@ -120,17 +122,17 @@ IMU::ImuData IMU::getImuData()
     //     imu_print_cntr = 0;
 
     //     printf("IMU RAW: roll = %.3f deg, pitch = %.3f deg\n",
-    //         rpy_raw(0) * AMR_RAD_TO_DEG,
-    //         rpy_raw(1) * AMR_RAD_TO_DEG);
+    //         rpy_raw(0) * MR_RAD_TO_DEG,
+    //         rpy_raw(1) * MR_RAD_TO_DEG);
     // }
 //////////////////////////////////////////////////////////////////////////////////
 
     // Use raw values first
     m_ImuData.rpy = rpy_raw;
 
-    // Offsets korrigieren
-    m_ImuData.rpy(0) += (0.073f) * AMR_DEG_TO_RAD;      // roll
-    m_ImuData.rpy(1) += (-0.939f) * AMR_DEG_TO_RAD;     // pitch
+    // // Offsets korrigieren
+    // m_ImuData.rpy(0) += (0.073f) * MR_DEG_TO_RAD;      // roll
+    // m_ImuData.rpy(1) += (-0.939f) * MR_DEG_TO_RAD;     // pitch
  
     m_ImuData.tilt = m_Mahony.getTiltAngle();
 
@@ -139,8 +141,8 @@ IMU::ImuData IMU::getImuData()
     //     imu_print_cntr = 0;
 
     //     printf("IMU Mahony: roll = %.3f deg, pitch = %.3f deg\n",
-    //         m_ImuData.rpy(0) * AMR_RAD_TO_DEG,
-    //         m_ImuData.rpy(1) * AMR_RAD_TO_DEG);
+    //         m_ImuData.rpy(0) * MR_RAD_TO_DEG,
+    //         m_ImuData.rpy(1) * MR_RAD_TO_DEG);
     // }
 ///////////////////////////////////////////////////////////////////////////////////
 

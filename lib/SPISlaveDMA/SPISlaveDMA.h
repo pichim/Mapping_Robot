@@ -23,18 +23,18 @@
 
 // Example alternatives (auto-detects SPI instance from the pins you pass)
 // -- SPI1 combos --
-// SpiSlaveDMA spi(PA_7,  PA_6,  PA_5,  PA_4);    // SPI1, all on Port A
-// SpiSlaveDMA spi(PB_5,  PB_4,  PB_3,  PA_15);   // SPI1, PB_3/4/5 + PA_15 NSS
-// SpiSlaveDMA spi(PA_7,  PB_4,  PB_3,  PA_4);    // SPI1, mixed ports
+// SpiSlaveDMA spi(PA_7,  PA_6,  PA_5,  PA_4,  osPriorityHigh2, OS_STACK_SIZE); // SPI1, all on Port A
+// SpiSlaveDMA spi(PB_5,  PB_4,  PB_3,  PA_15, osPriorityHigh2, OS_STACK_SIZE); // SPI1, PB_3/4/5 + PA_15 NSS
+// SpiSlaveDMA spi(PA_7,  PB_4,  PB_3,  PA_4,  osPriorityHigh2, OS_STACK_SIZE); // SPI1, mixed ports
 // -- SPI2 combos --
-// SpiSlaveDMA spi(PC_3,  PC_2,  PB_10, PB_12);   // SPI2, your current wiring
-// SpiSlaveDMA spi(PB_15, PB_14, PB_13, PB_9);    // SPI2, all on Port B
-// SpiSlaveDMA spi(PC_3,  PB_14, PB_13, PB_12);   // SPI2, mixed ports
-// SpiSlaveDMA spi(PB_15, PC_2,  PB_10, PB_9);    // SPI2, mixed ports
+// SpiSlaveDMA spi(PC_3,  PC_2,  PB_10, PB_12, osPriorityHigh2, OS_STACK_SIZE); // SPI2, current wiring
+// SpiSlaveDMA spi(PB_15, PB_14, PB_13, PB_9,  osPriorityHigh2, OS_STACK_SIZE); // SPI2, all on Port B
+// SpiSlaveDMA spi(PC_3,  PB_14, PB_13, PB_12, osPriorityHigh2, OS_STACK_SIZE); // SPI2, mixed ports
+// SpiSlaveDMA spi(PB_15, PC_2,  PB_10, PB_9,  osPriorityHigh2, OS_STACK_SIZE); // SPI2, mixed ports
 // -- SPI3 combos --
-// SpiSlaveDMA spi(PC_12, PC_11, PC_10, PA_4);    // SPI3, unique SCK=PC_10
-// SpiSlaveDMA spi(PC_12, PB_4,  PC_10, PA_15);   // SPI3, SCK=PC_10 forces SPI3
-// SpiSlaveDMA spi(PB_5,  PC_11, PB_3,  PA_4);    // SPI3, PB_3 SCK + PC_11 MISO disambiguates to SPI3
+// SpiSlaveDMA spi(PC_12, PC_11, PC_10, PA_4,  osPriorityHigh2, OS_STACK_SIZE); // SPI3, unique SCK=PC_10
+// SpiSlaveDMA spi(PC_12, PB_4,  PC_10, PA_15, osPriorityHigh2, OS_STACK_SIZE); // SPI3, SCK=PC_10 forces SPI3
+// SpiSlaveDMA spi(PB_5,  PC_11, PB_3,  PA_4,  osPriorityHigh2, OS_STACK_SIZE); // SPI3, PB_3 SCK + PC_11 MISO disambiguates to SPI3
 
 #ifndef SPI_SLAVE_DMA_H_
 #define SPI_SLAVE_DMA_H_

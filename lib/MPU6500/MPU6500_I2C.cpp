@@ -23,7 +23,7 @@ bool MPU6500_I2C::init()
     // Set Gyro scale to +-250 dps
     writeRegister(GYRO_CONFIG, 0x00);
     ThisThread::sleep_for(chrono::milliseconds(15));
-    // Set Gyro scale to +-2g dps
+    // Set accelerometer range to +/-2 g
     writeRegister(ACCEL_CONFIG, 0x00);
     ThisThread::sleep_for(chrono::milliseconds(15));
 
@@ -36,7 +36,7 @@ bool MPU6500_I2C::init()
     writeRegister(ACCEL_CONFIG_2, 0x01);
     ThisThread::sleep_for(chrono::milliseconds(15));
 
-    // Sets the Sampler rate divider to 0, which would result in a sample rate of 1Hz for the gyro when DLPF is enabled.
+    // Set SMPLRT_DIV to zero, leaving the internal sample rate undivided.
     writeRegister(SMPLRT_DIV, 0x00);
     ThisThread::sleep_for(chrono::milliseconds(15));
 
@@ -258,7 +258,7 @@ void MPU6500_I2C::set_acc_scale(uint8_t config)
     }
 }
 
-/** Verify the SPI connection.
+/** Verify the I2C connection by checking WHO_AM_I.
  * Make sure the device is connected and responds as expected.
  * @return True if connection is valid, false otherwise
  */

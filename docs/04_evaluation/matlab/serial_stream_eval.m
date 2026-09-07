@@ -1,6 +1,11 @@
 clc, clear all
 %%
 
+% The evaluation below uses legacy servo telemetry channel selections.
+% Before analyzing current robot logs, update the indices and command plot:
+% data.values excludes delta time; commands = 1:2, measured velocity = 3:4,
+% gyro = 5:7, acc = 8:10, rpy = 11:13. See the README UART logging table.
+
 port = '/dev/ttyUSB0'; % port = 'COM12';
 baudrate = 2e6;
 
