@@ -14,7 +14,7 @@ int main()
     spiComCntrl.enable();
 
     // Servo set to middle position
-    // Servo servoD0(BBOP_SERVO_D0_PIN, BBOP_SERVO_PWM_PERIOD_US);
+    // Servo servoD0(AMR_SERVO_D0_PIN, AMR_SERVO_PWM_PERIOD_US);
     // servoD0.calibratePulseMinMax(SERVO_PULSE_MIN, SERVO_PULSE_MAX);
     // servoD0.enable(0.5f);
 

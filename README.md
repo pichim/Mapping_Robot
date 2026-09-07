@@ -67,7 +67,7 @@ For the best tracking performance, always use an **orange table tennis (ping pon
  
 ## Defaults / tuning
  
-- Loop period: 1 ms (`BBOP_SPI_COM_CNTRL_THREAD_PERIOD_US`).
+- Loop period: 1 ms (`AMR_SPI_COM_CNTRL_THREAD_PERIOD_US`).
 - IMU filters: 60 Hz gyro/acc; 1000-sample skip, 1000-sample bias avg; optional static acc bias.
 - Servo pulse bounds: 0.0325–0.1175 (normalized mapping).
 - SPI payload length and UART logging buffer both capped at 30 floats.

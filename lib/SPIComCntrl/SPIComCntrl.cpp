@@ -23,7 +23,7 @@ namespace
      */
     constexpr int CONTROL_LOOP_DIVIDER = 3;
 
-    constexpr float CONTROL_TS_S = CONTROL_LOOP_DIVIDER * BBOP_SPI_COM_CNTRL_THREAD_PERIOD_US * 1.0e-6f;
+    constexpr float CONTROL_TS_S = CONTROL_LOOP_DIVIDER * AMR_SPI_COM_CNTRL_THREAD_PERIOD_US * 1.0e-6f;
 
     // Kamera läuft mit ca. 50 Hz
     constexpr float CAMERA_TS_S = 0.020f;
@@ -47,24 +47,24 @@ namespace
 }
 
 SPIComCntrl::SPIComCntrl()
-    : RealTimeThread(BBOP_SPI_COM_CNTRL_THREAD_PERIOD_US,
-                     BBOP_SPI_COM_CNTRL_THREAD_PRIORITY,
-                     BBOP_SPI_COM_CNTRL_THREAD_STACK_SIZE)
-    , m_SpiSlaveDMA(BBOP_SPI_SLAVE_DMA_MOSI_PIN,
-                    BBOP_SPI_SLAVE_DMA_MISO_PIN,
-                    BBOP_SPI_SLAVE_DMA_SCK_PIN,
-                    BBOP_SPI_SLAVE_DMA_NSS_PIN,
-                    BBOP_SPI_SLAVE_DMA_THREAD_PRIORITY,
-                    BBOP_SPI_SLAVE_DMA_THREAD_STACK_SIZE)
-    , m_Imu(BBOP_IMU_SDA_PIN, BBOP_IMU_SCL_PIN)
-    , m_servoD0(BBOP_SERVO_D0_PIN, BBOP_SERVO_PWM_PERIOD_US)
-    , m_servoD1(BBOP_SERVO_D1_PIN, BBOP_SERVO_PWM_PERIOD_US)
-    , m_servoD2(BBOP_SERVO_D2_PIN, BBOP_SERVO_PWM_PERIOD_US)
-    , m_SerialStream(BBOP_LOG_COM_UART_TX_PIN, BBOP_LOG_COM_UART_RX_PIN)
-    , m_observerX(static_cast<float>(BBOP_SPI_COM_CNTRL_THREAD_PERIOD_US) * 1.0e-6f)
-    , m_observerY(static_cast<float>(BBOP_SPI_COM_CNTRL_THREAD_PERIOD_US) * 1.0e-6f)
-    , m_Ts(static_cast<float>(BBOP_SPI_COM_CNTRL_THREAD_PERIOD_US) * 1.0e-6f)
-    , user_button(BBOP_USER_BUTTON, PullUp)
+    : RealTimeThread(AMR_SPI_COM_CNTRL_THREAD_PERIOD_US,
+                     AMR_SPI_COM_CNTRL_THREAD_PRIORITY,
+                     AMR_SPI_COM_CNTRL_THREAD_STACK_SIZE)
+    , m_SpiSlaveDMA(AMR_SPI_SLAVE_DMA_MOSI_PIN,
+                    AMR_SPI_SLAVE_DMA_MISO_PIN,
+                    AMR_SPI_SLAVE_DMA_SCK_PIN,
+                    AMR_SPI_SLAVE_DMA_NSS_PIN,
+                    AMR_SPI_SLAVE_DMA_THREAD_PRIORITY,
+                    AMR_SPI_SLAVE_DMA_THREAD_STACK_SIZE)
+    , m_Imu(AMR_IMU_SDA_PIN, AMR_IMU_SCL_PIN)
+    , m_servoD0(AMR_SERVO_D0_PIN, AMR_SERVO_PWM_PERIOD_US)
+    , m_servoD1(AMR_SERVO_D1_PIN, AMR_SERVO_PWM_PERIOD_US)
+    , m_servoD2(AMR_SERVO_D2_PIN, AMR_SERVO_PWM_PERIOD_US)
+    , m_SerialStream(AMR_LOG_COM_UART_TX_PIN, AMR_LOG_COM_UART_RX_PIN)
+    , m_observerX(static_cast<float>(AMR_SPI_COM_CNTRL_THREAD_PERIOD_US) * 1.0e-6f)
+    , m_observerY(static_cast<float>(AMR_SPI_COM_CNTRL_THREAD_PERIOD_US) * 1.0e-6f)
+    , m_Ts(static_cast<float>(AMR_SPI_COM_CNTRL_THREAD_PERIOD_US) * 1.0e-6f)
+    , user_button(AMR_USER_BUTTON, PullUp)
 {
     // Start SPI communication
     if (!m_SpiSlaveDMA.start()) {
@@ -94,9 +94,9 @@ SPIComCntrl::SPIComCntrl()
     m_servoD2.calibratePulseMinMax(SERVO3_PULSE_MIN, SERVO3_PULSE_MAX);
 
     // Initiale Servo-Kommandos auf reale Home-Lage setzen
-    m_servo_commands[0] = DegreeToPWM(SERVO1_HOME_DEG, BBOP_SERVO1_angle_range_grad);
-    m_servo_commands[1] = DegreeToPWM(SERVO2_HOME_DEG, BBOP_SERVO2_angle_range_grad);
-    m_servo_commands[2] = DegreeToPWM(SERVO3_HOME_DEG, BBOP_SERVO3_angle_range_grad);
+    m_servo_commands[0] = DegreeToPWM(SERVO1_HOME_DEG, AMR_SERVO1_angle_range_grad);
+    m_servo_commands[1] = DegreeToPWM(SERVO2_HOME_DEG, AMR_SERVO2_angle_range_grad);
+    m_servo_commands[2] = DegreeToPWM(SERVO3_HOME_DEG, AMR_SERVO3_angle_range_grad);
 
     // Servos beim Start deaktiviert lassen
     m_servoD0.disable();
@@ -255,9 +255,9 @@ void SPIComCntrl::executeTask()
     /*
      * Standard Home-Kommandos, falls Regler nicht aktiv ist oder IK fehlschlägt.
      */
-    const float servo1_home_pwm = DegreeToPWM(SERVO1_HOME_DEG, BBOP_SERVO1_angle_range_grad);
-    const float servo2_home_pwm = DegreeToPWM(SERVO2_HOME_DEG, BBOP_SERVO2_angle_range_grad);
-    const float servo3_home_pwm = DegreeToPWM(SERVO3_HOME_DEG, BBOP_SERVO3_angle_range_grad);
+    const float servo1_home_pwm = DegreeToPWM(SERVO1_HOME_DEG, AMR_SERVO1_angle_range_grad);
+    const float servo2_home_pwm = DegreeToPWM(SERVO2_HOME_DEG, AMR_SERVO2_angle_range_grad);
+    const float servo3_home_pwm = DegreeToPWM(SERVO3_HOME_DEG, AMR_SERVO3_angle_range_grad);
 
     /*
      * Hauptlogik
@@ -376,9 +376,9 @@ void SPIComCntrl::executeTask()
                 servo3_cmd_deg = clamp(servo3_cmd_deg, SERVO_MIN_DEG, SERVO_MAX_DEG);
 
                 // In PWM umrechnen
-                m_servo_commands[0] = DegreeToPWM(servo1_cmd_deg, BBOP_SERVO1_angle_range_grad);
-                m_servo_commands[1] = DegreeToPWM(servo2_cmd_deg, BBOP_SERVO2_angle_range_grad);
-                m_servo_commands[2] = DegreeToPWM(servo3_cmd_deg, BBOP_SERVO3_angle_range_grad);
+                m_servo_commands[0] = DegreeToPWM(servo1_cmd_deg, AMR_SERVO1_angle_range_grad);
+                m_servo_commands[1] = DegreeToPWM(servo2_cmd_deg, AMR_SERVO2_angle_range_grad);
+                m_servo_commands[2] = DegreeToPWM(servo3_cmd_deg, AMR_SERVO3_angle_range_grad);
 
             } else {
 
@@ -524,5 +524,5 @@ float SPIComCntrl::PWMToDegree(float pulse_width)
 
 float SPIComCntrl::DegreeToRad(float degree)
 {
-    return degree * BBOP_DEG_TO_RAD;
+    return degree * AMR_DEG_TO_RAD;
 }
