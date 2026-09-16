@@ -10,13 +10,13 @@ Each loop cycle (target **20 ms**) performs two SPI transfers:
 1. **ARM-ONLY frame** – `0x56` + zero payload + CRC
    - lets the slave re-arm and build a fresh reply.
 2. **PUBLISH frame** – `0x55` + actual float payload + CRC
-   - triggers the slave to send back the fresh data.
+   - publishes the command while receiving the previously prepared reply.
 
 The first transfer gives the slave an opportunity to rebuild its reply before the second transfer. The reply is previously prepared telemetry; it does not acknowledge application of the command being received in the same transfer. CRC and header validation remain necessary.
 
 ## Features
 
-- **High-speed SPI** at 33 MHz (mode 0)
+- SPI at a requested **33,333,333 Hz** (mode 0)
 - **30 × 32-bit floats** per frame (**122 bytes** total)
 - **CRC-8** (polynomial `0x07`, init `0x00`) for error detection
 - Target **20 ms cycle** timed using `time.perf_counter()`; printing and scheduling delays extend the actual period
@@ -26,18 +26,18 @@ The first transfer gives the slave an opportunity to rebuild its reply before th
 
 ## Wiring (Pi J8 → Nucleo-F446RE)
 
-| Raspberry Pi 5 Pin | Function              | Nucleo F446RE Pin |
-| ------------------ | --------------------- | ----------------- |
-| 5V (PIN 2)         | Optional Power Supply | E5V               |
-| GND (PIN 6)        | First GND             | GND below E5V     |
-|                    |                       |                   |
-| GPIO10 (Pin 19)    | MOSI                  | PC_3              |
-| GND    (Pin 20)    | Second GND            | GND below AVDD    |
-| GPIO9  (Pin 21)    | MISO                  | PC_2              |
-| GPIO11 (Pin 23)    | SCLK                  | PB_10             |
-| GPIO8  (Pin 24)    | CS (CE0)              | PB_12             |
+Power off before rewiring. Use short 3.3 V signal wires and common ground.
+For this setup, power the Nucleo through ST-LINK USB; connect no power pins between boards.
 
-It is important to connect two GNDs (pins 6 and 20) to ensure a stable reference.
+| Pi 5 physical pin | Signal | Nucleo-F446RE |
+| --- | --- | --- |
+| 19 (GPIO10) | MOSI | PC3 — CN7 pin 37 |
+| 21 (GPIO9) | MISO | PC2 — CN7 pin 35 |
+| 23 (GPIO11) | SCK | PB10 — CN10 pin 25 |
+| 24 (GPIO8 / CE0) | NSS | PB12 — CN10 pin 16 |
+| 6 | GND | CN7 pin 8 |
+
+An additional ground wire is optional; both boards must share ground.
 
 ## Key Parameters
 
@@ -47,7 +47,7 @@ It is important to connect two GNDs (pins 6 and 20) to ensure a stable reference
 | `SPI_MSG_SIZE`        | 122     | header (1) + floats (120) + CRC (1)           |
 | `main_task_period_us` | 20000   | target loop period (µs) – 20 ms               |
 | `ARM_GAP_US`          | 100     | micro-gap between ARM-ONLY and PUBLISH frames |
-| `spi.max_speed_hz`    | 33 MHz  | SPI bus speed                                 |
+| `spi.max_speed_hz`    | 33333333 | Requested SPI clock (Hz)                     |
 
 ## Tuning
 
@@ -63,7 +63,10 @@ Reply fields: 0-1 measured forward speed and yaw rate; 2-4 gyro (rad/s); 5-7 acc
 
 - Protocol is **master-driven**: the Pi always initiates both transfers.
 - Only the **second reply** (`rx2`) is used; `rx1` is ignored.
-- CRC failures or wrong headers increment `failed_count` but do not stop the loop.
+- Invalid reply length, header, CRC, or non-finite telemetry stops the client; SPI I/O errors also exit through cleanup.
+- There is no command acknowledgement, sequence number, or measurement timestamp. The fixed ARM gap is not a ready signal.
+- Ctrl+C or an error attempts one final ARM/PUBLISH exchange with zero velocities, then closes SPI. Acceptance is unconfirmed even with a valid reply. Zero velocity does not disable the drivers; the MCU’s 250 ms command timeout does so after commands cease. A stalled control task can delay it.
+- MPC_Demonstrator uses different settings and 14-byte frames; its timing results do not validate this 122-byte configuration.
 - The original guide reports testing on **Raspberry Pi 5 + Nucleo F446RE** with an Mbed CE SPI-DMA slave. This historical test does not establish hardware validation of the current firmware.
 - The IMU startup skip runs once; its counter stops at the threshold rather than wrapping. Replies remain previously prepared telemetry: a valid CRC does not prove that IMU fields have just been updated.
 
@@ -72,5 +75,6 @@ Reply fields: 0-1 measured forward speed and yaw rate; 2-4 gyro (rad/s); 5-7 acc
 Enable SPI0, install `python3-spidev`, and verify that `/dev/spidev0.0` exists; see [Raspberry Pi setup](../../README.md#run-on-the-raspberry-pi). From the repository root:
 
 ```bash
-sudo chrt -f 50 python3 python/main.py
+cd ~/Mbed_CE_Programs/Mapping_Robot
+sudo chrt -f 50 python3 -u python/main.py 2>&1 | tee spi_timing.txt
 ```

@@ -164,12 +164,17 @@ bool SpiSlaveDMA::start() {
     // (Do not call NVIC_EnableIRQ here; InterruptIn already enables the line.)
 
     configureGPIOandDMA();                        // sets AF on pins
-    MBED_ASSERT(HAL_SPI_Init(&m_hspi) == HAL_OK);
+    if (HAL_SPI_Init(&m_hspi) != HAL_OK) {
+        m_InterruptIn_NSS.rise(nullptr);
+        return false;
+    }
 
     buildTX();
     if (tryArmDmaFrame()) {
-        m_Thread.start(callback(this, &SpiSlaveDMA::threadTask));
-        return true;
+        if (m_Thread.start(callback(this, &SpiSlaveDMA::threadTask)) == osOK)
+            return true;
+        HAL_SPI_DMAStop(&m_hspi);
+        return false;
     }
 
     printf("[%-4s] Initial arm failed ...\n", instanceName());
@@ -230,6 +235,8 @@ void SpiSlaveDMA::threadTask() {
             m_SPIData.failed_count++;
             core_util_critical_section_exit();
 
+            // Stop DMA before rebuilding buffers after an incomplete transfer.
+            HAL_SPI_DMAStop(&m_hspi);
             buildTX();
             (void)tryArmDmaFrame();
 

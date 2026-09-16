@@ -3,3 +3,4 @@ mbed-os
 logs
 *.csv
 __pycache__
+spi_timing*.txt

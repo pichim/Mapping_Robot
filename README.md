@@ -46,7 +46,7 @@ M1/M2 PWM share TIM1 at 20 kHz; their encoders use TIM3/TIM4 respectively. Do no
 | 11-29 | Reserved, zero | - |
 
 - Slots 8-10 are RPY, not the old firmware's magnetometer fields. The MPU6500 has no magnetometer.
-- Protocol: Master sends 0x56 (arm) then 0x55 (publish). CRC-8 (poly 0x07) over header+payload.
+- Protocol: Master sends 0x56 (arm), waits at least 100 µs, then sends 0x55 (publish). Reply header is 0x45. CRC-8 (poly 0x07, initial value 0) covers header+payload.
 - Replies are previously prepared telemetry, not a synchronous acknowledgement of the command in the same transfer.
 - Update the Python master together with the firmware: the old servo waveform would now command robot motion.
 
@@ -111,10 +111,15 @@ sudo apt install python3-spidev
 Follow the [SPI wiring guide](docs/03_markdown/spi_com_master.md), then run from the repository root:
 
 ```bash
-sudo chrt -f 50 python3 python/main.py
+cd ~/Mbed_CE_Programs/Mapping_Robot
+sudo chrt -f 50 python3 -u python/main.py 2>&1 | tee spi_timing.txt
 ```
 
+The client targets **50 Hz** (20 ms), SPI mode 0 at a requested **33,333,333 Hz**, with **122-byte frames** and a **100 µs ARM gap**. These differ from MPC_Demonstrator; its 500 Hz / 5 MHz results do not validate this configuration. The MCU control loop independently runs at 1 kHz. `spi_timing*.txt` captures are ignored by Git.
+
 `chrt` is provided by `util-linux`. The command requests FIFO scheduling priority 50; it does not guarantee a precise 20 ms cycle. The client sleeps for the remaining cycle budget, then prints, so printing and scheduling delays extend the actual period.
+
+Invalid reply length, header, CRC, or non-finite telemetry stops the client. Ctrl+C or an error attempts a final zero-velocity command and closes SPI. Replies do not acknowledge command acceptance; zero velocity does not disable the drivers. The MCU’s 250 ms command timeout disables them after commands cease, but a stalled control task can delay it. Replies contain no sequence number or measurement timestamp.
 
 Running the client commands the original in-phase sine waveforms: forward-speed amplitude 0.2333 m/s and yaw-rate amplitude 1.5 rad/s, both at 0.25 Hz (four-second period). These are robot setpoints; individual motor speed limits may clip the resulting wheel commands. The waveform phase starts with the client and is not reset when IMU calibration completes, so the first accepted command can be nonzero. Adjust `load_tx_frame()` to reduce the amplitudes or send zero commands for commissioning.
 
