@@ -1,6 +1,6 @@
 # Mapping Robot
 
-Firmware for the Nucleo F446RE with a nominal 1 kHz robot control loop, SPI-DMA slave I/O to a Raspberry Pi 5, two DC motors, an MPU6500 IMU, and a high-speed UART logging stream. The PlatformIO configuration uses Mbed OS; the locally verified build used Mbed OS 6.17.0.
+Firmware for the Nucleo F446RE with a nominal 1 kHz robot control loop, SPI-DMA slave I/O to a Raspberry Pi 5, two DC motors, an MPU6500 IMU, and a high-speed UART logging stream. The CMake build uses Mbed OS Community Edition (Mbed CE); the current checkout reports version 7.0.99.
 
 The controller receives SPI data, reads wheel feedback, calculates robot velocity, maps robot commands through `Cwheel2robot.inverse()`, commands both motors in turns/s, then reads the IMU and prepares telemetry. Calibration gating, finite-command checks, and the 250 ms command timeout are enabled. Firmware console output is limited to startup and diagnostics; telemetry logging uses UART.
 
@@ -70,18 +70,16 @@ The [evaluation script](docs/04_evaluation/matlab/serial_stream_eval.m) retains 
 
 ## Build & flash
 
-- Install PlatformIO Core or the PlatformIO IDE extension for VS Code. Mbed Studio is untested.
-- Run commands from the repository root in a terminal with `pio` on its `PATH` (for example, the PlatformIO terminal in VS Code).
+- Install the [Mbed CE toolchain prerequisites](https://mbed-ce.dev/getting-started/toolchain-install/) and the VS Code CMake Tools extension. This project uses GCC Arm, CMake, and Ninja.
+- The `mbed-os` directory is not stored in this repository. From the repository root, clone Mbed CE before configuring the project:
 
 ```bash
-pio run -e nucleo_f446re
+git clone --depth 1 https://github.com/mbed-ce/mbed-os.git mbed-os
 ```
 
-To flash, connect the Nucleo's ST-LINK USB port and make sure its mass-storage drive is mounted; the project uses `upload_protocol = mbed`:
+In VS Code, select the `NUCLEO_F446RE` board and desired `Develop`, `Debug`, or `Release` build type with **CMake: Select Variant**, then run **CMake: Configure**. Use **CMake: Set Build Target** to select `Mapping_Robot`, then run **CMake: Build**.
 
-```bash
-pio run -e nucleo_f446re --target upload
-```
+To flash, connect the Nucleo's ST-LINK USB port and run the default VS Code build task. It mounts the MBED mass-storage drive on Linux and builds the `flash-Mapping_Robot` target. The upload method is configured as `MBED` in `cmake-variants.yaml`.
 
 A successful build does not verify motor polarity, wiring, or real-time timing on the board. Running the Python client accesses SPI and commands motion; it is not a hardware-free test.
 

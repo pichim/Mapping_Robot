@@ -1,6 +1,6 @@
 # SPI COM Master
 
-Python master implementation with a **target 20 ms cycle and double-transfer SPI protocol** used in a robotics control link between a **Raspberry Pi 5** (master) and an **STM32 Nucleo-F446RE** (slave). The current PlatformIO firmware uses Mbed OS; the locally verified build used version 6.17.0. The client targets Raspberry Pi OS or Ubuntu (64-bit).
+Python master implementation with a **target 20 ms cycle and double-transfer SPI protocol** used in a robotics control link between a **Raspberry Pi 5** (master) and an **STM32 Nucleo-F446RE** (slave). The firmware uses Mbed OS Community Edition (Mbed CE); the current checkout reports version 7.0.99. The client targets Raspberry Pi OS or Ubuntu (64-bit).
 
 ## Overview
 
@@ -64,7 +64,7 @@ Reply fields: 0-1 measured forward speed and yaw rate; 2-4 gyro (rad/s); 5-7 acc
 - Protocol is **master-driven**: the Pi always initiates both transfers.
 - Only the **second reply** (`rx2`) is used; `rx1` is ignored.
 - CRC failures or wrong headers increment `failed_count` but do not stop the loop.
-- The original guide reports testing on **Raspberry Pi 5 + Nucleo F446RE** with an Mbed-CE SPI-DMA slave. This historical test does not establish hardware validation of the current Mbed OS firmware.
+- The original guide reports testing on **Raspberry Pi 5 + Nucleo F446RE** with an Mbed CE SPI-DMA slave. This historical test does not establish hardware validation of the current firmware.
 - The IMU startup skip runs once; its counter stops at the threshold rather than wrapping. Replies remain previously prepared telemetry: a valid CRC does not prove that IMU fields have just been updated.
 
 ## Run
